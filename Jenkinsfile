@@ -2,40 +2,42 @@ pipeline {
     agent any
 
     tools {
-        jdk 'java'       // Nom exact du JDK configuré dans Jenkins
-        maven 'Maven3'     // Nom exact du Maven configuré dans Jenkins
+        jdk 'java'         // Nom exact du JDK 17 configuré dans Jenkins Global Tool Configuration
+        maven 'Maven3'       // Nom exact de Maven configuré dans Jenkins
     }
 
     environment {
-        SONAR = 'SonarQube'         // Nom du serveur SonarQube dans Jenkins
-        NEXUS_CRED = 'nexus-admin'  // Credentials Jenkins pour Nexus
+        SONAR = 'SonarQube'           // Nom du serveur SonarQube dans Jenkins Configure System
+        NEXUS_CRED = 'nexus-admin'    // Credential Jenkins pour Nexus
         NEXUS_URL = 'http://localhost:8081'
         NEXUS_REPO = 'maven-releases'
     }
 
     options {
-        buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '10'))
-        timestamps()
+        buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '10')) // garder 30 jours ou 10 builds
+        timestamps() // affichage timestamps dans la console
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Clonage du code depuis GitHub"
-                git branch: 'main', url: 'https://github.com/Michella20/demoic.git', credentialsId: 'github-jenkins'
+                echo "Cloning code from GitHub"
+                git branch: 'main',
+                    url: 'https://github.com/Michella20/demoic.git',
+                    credentialsId: 'github-jenkins'
             }
         }
 
         stage('Build & Test') {
             steps {
-                echo "Compilation et tests Maven"
+                echo "Running Maven build and tests"
                 sh 'mvn clean verify'
             }
         }
 
-        stage('Analyse SonarQube') {
+        stage('SonarQube Analysis') {
             steps {
-                echo "Analyse SonarQube"
+                echo "Running SonarQube analysis"
                 withSonarQubeEnv('SonarQube') {
                     sh 'mvn sonar:sonar'
                 }
@@ -44,7 +46,7 @@ pipeline {
 
         stage('Publish Artifact to Nexus') {
             steps {
-                echo "Publication sur Nexus"
+                echo "Uploading artifact to Nexus"
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
@@ -63,13 +65,13 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline terminé avec succès !"
+            echo "Pipeline finished successfully!"
         }
         failure {
-            echo "Le pipeline a échoué. Vérifiez la console pour plus de détails."
+            echo "Pipeline failed. Check console output for details."
         }
         always {
-            echo "Fin du pipeline."
+            echo "End of Pipeline."
         }
     }
 }
