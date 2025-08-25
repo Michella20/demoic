@@ -1,0 +1,11 @@
+
+                                <settings>
+                                  <servers>
+                                    <server>
+                                      <id>nexus-snapshots</id>
+                                      <username>maven-deployer</username>
+                                      <password>6411fd0f-8e80-3c68-8565-aa11c9220c5f</password>
+                                    </server>
+                                  </servers>
+                                </settings>
+                                
