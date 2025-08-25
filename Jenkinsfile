@@ -54,7 +54,7 @@ pipeline {
                     repository: "${env.NEXUS_REPO}",
                     credentialsId: "${env.NEXUS_CRED}",
                     groupId: 'com.demoic',
-                    artifactId: 'demoic',
+                    artefacts: 'demoic',
                     version: '1.0.0',
                     file: 'target/demoic.jar',
                     packaging: 'jar'
