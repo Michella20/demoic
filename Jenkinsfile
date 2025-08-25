@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'     // Nom du Maven configuré dans Jenkins
-        jdk 'Java17'       // Nom du JDK configuré dans Jenkins
+        jdk 'java'       // Nom exact du JDK configuré dans Jenkins
+        maven 'Maven3'     // Nom exact du Maven configuré dans Jenkins
     }
 
     environment {
-        SONAR = 'SonarQube'        // Nom du serveur SonarQube
-        NEXUS_CRED = 'nexus-admin' // ID du credential Nexus dans Jenkins
+        SONAR = 'SonarQube'         // Nom du serveur SonarQube dans Jenkins
+        NEXUS_CRED = 'nexus-admin'  // Credentials Jenkins pour Nexus
         NEXUS_URL = 'http://localhost:8081'
         NEXUS_REPO = 'maven-releases'
     }
@@ -22,9 +22,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Clonage du code depuis GitHub"
-                git branch: 'main',
-                    url: 'https://github.com/Michella20/demoic.git',
-                    credentialsId: 'github-jenkins'
+                git branch: 'main', url: 'https://github.com/Michella20/demoic.git', credentialsId: 'github-jenkins'
             }
         }
 
@@ -54,8 +52,8 @@ pipeline {
                     repository: "${env.NEXUS_REPO}",
                     credentialsId: "${env.NEXUS_CRED}",
                     groupId: 'com.demoic',
-                    version: '1.0.0',
                     artifactId: 'demoic',
+                    version: '1.0.0',
                     file: 'target/demoic.jar',
                     packaging: 'jar'
                 )
@@ -65,10 +63,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline terminé avec succès !"
+            echo "Pipeline terminé avec succès !"
         }
         failure {
-            echo "❌ Le pipeline a échoué. Vérifiez la console."
+            echo "Le pipeline a échoué. Vérifiez la console pour plus de détails."
         }
         always {
             echo "Fin du pipeline."
