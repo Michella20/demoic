@@ -31,7 +31,7 @@ pipeline {
         stage('Build & Test') {
             steps {
                 echo "Running Maven build and tests"
-                sh 'mvn clean verify'
+                bat 'mvn clean verify'
             }
         }
 
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo "Running SonarQube analysis"
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+                    bat 'mvn sonar:sonar'
                 }
             }
         }
