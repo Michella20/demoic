@@ -28,6 +28,15 @@ pipeline {
             }
         }
 
+        stage('Test Tools') {
+            steps {
+                echo "Testing if CMD, Java, and Maven are available"
+                bat 'echo Hello from Windows CMD'
+                bat 'where java'
+                bat 'where mvn'
+            }
+        }
+
         stage('Build & Test') {
             steps {
                 echo "Running Maven build and tests"
