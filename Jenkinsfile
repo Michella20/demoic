@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         jdk 'java'         // Nom exact du JDK 17 configuré dans Jenkins Global Tool Configuration
-        maven 'Maven3'       // Nom exact de Maven configuré dans Jenkins
+        maven 'Maven3'     // Nom exact de Maven configuré dans Jenkins
     }
 
     environment {
@@ -14,8 +14,8 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '10')) // garder 30 jours ou 10 builds
-        timestamps() // affichage timestamps dans la console
+        buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '10'))
+        timestamps()
     }
 
     stages {
@@ -54,10 +54,15 @@ pipeline {
                     repository: "${env.NEXUS_REPO}",
                     credentialsId: "${env.NEXUS_CRED}",
                     groupId: 'com.demoic',
-                    artefacts: 'demoic',
-                    version: '1.0.0',
-                    file: 'target/demoic.jar',
-                    packaging: 'jar'
+                    artifacts: [
+                        [
+                            artifactId: 'demoic',
+                            classifier: '',
+                            file: 'target/demoic.jar',
+                            type: 'jar'
+                        ]
+                    ],
+                    version: '1.0.0'
                 )
             }
         }
