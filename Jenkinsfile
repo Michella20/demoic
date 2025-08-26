@@ -1,14 +1,15 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'java'         // Nom exact du JDK 17 configuré dans Jenkins Global Tool Configuration
-        maven 'Maven3'     // Nom exact de Maven configuré dans Jenkins
-    }
-
     environment {
-        SONAR = 'SonarQube'           // Nom du serveur SonarQube dans Jenkins Configure System
-        NEXUS_CRED = 'nexus-admin'    // Credential Jenkins pour Nexus
+        // Chemins complets pour cmd, java et maven
+        CMD = 'C:\\Windows\\System32\\cmd.exe'
+        JAVA_HOME = 'C:\\Users\\Laptop_Pavilion\\Downloads\\OpenJDK17U-jdk_x64_windows_hotspot_17.0.16_8\\jdk-17.0.16+8'       // Vérifie ton chemin exact
+        MAVEN_HOME = 'C:\\Users\\Laptop_Pavilion\\Downloads\\apache-maven-3.9.11-bin\\apache-maven-3.9.11' // Vérifie ton chemin exact
+        PATH = "${env.JAVA_HOME}\\bin;${env.MAVEN_HOME}\\bin;${env.PATH}"
+
+        SONAR = 'SonarQube'
+        NEXUS_CRED = 'nexus-admin'
         NEXUS_URL = 'http://localhost:8081'
         NEXUS_REPO = 'maven-releases'
     }
@@ -30,17 +31,17 @@ pipeline {
 
         stage('Test Tools') {
             steps {
-                echo "Testing if CMD, Java, and Maven are available"
-                bat 'echo Hello from Windows CMD'
-                bat 'where java'
-                bat 'where mvn'
+                echo "Test if CMD, Java and Maven are available"
+                bat "${CMD} /c echo CMD is available"
+                bat "${CMD} /c \"${JAVA_HOME}\\bin\\java -version\""
+                bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn -version\""
             }
         }
 
         stage('Build & Test') {
             steps {
                 echo "Running Maven build and tests"
-                bat 'mvn clean verify'
+                bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn clean verify\""
             }
         }
 
@@ -48,7 +49,7 @@ pipeline {
             steps {
                 echo "Running SonarQube analysis"
                 withSonarQubeEnv('SonarQube') {
-                    bat 'mvn sonar:sonar'
+                    bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn sonar:sonar\""
                 }
             }
         }
