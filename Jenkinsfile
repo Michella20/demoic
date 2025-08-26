@@ -68,7 +68,7 @@ pipeline {
                         [
                             artifactId: 'demoic',
                             classifier: '',
-                            file: 'target/demoic.jar',
+                            file: 'target/demoic-1.0-SNAPSHOT.jar',
                             type: 'jar'
                         ]
                     ],
