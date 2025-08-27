@@ -72,12 +72,12 @@ pipeline {
                     repository: "${env.NEXUS_REPO}",
                     credentialsId: "${env.NEXUS_CRED}",
                     groupId: 'com.demoic',
-                    version: 'version',
+                    version: "${version}",
                     artifacts: [
                         [
-                            artifactId: 'artifactId',
+                            artifactId: "${artifactId}",
                             classifier: '',
-                            file: 'jarFile',
+                            file: "${jarFile}",
                             type: 'jar'
                         ]
                     ]
