@@ -2,13 +2,16 @@ pipeline {
     agent any
 
     environment {
+        // Chemins complets pour cmd, java et maven
+        CMD = 'C:\\Windows\\System32\\cmd.exe'
         JAVA_HOME = 'C:\\Users\\Laptop_Pavilion\\Downloads\\OpenJDK17U-jdk_x64_windows_hotspot_17.0.16_8\\jdk-17.0.16+8'
         MAVEN_HOME = 'C:\\Users\\Laptop_Pavilion\\Downloads\\apache-maven-3.9.11-bin\\apache-maven-3.9.11'
+        PATH = "${env.JAVA_HOME}\\bin;${env.MAVEN_HOME}\\bin;${env.PATH}"
+
         SONAR = 'SonarQube'
         NEXUS_CRED = 'nexus-admin'
-        NEXUS_URL = 'localhost:8081'
-        NEXUS_RELEASE_REPO = 'maven-releases'
-        NEXUS_SNAPSHOT_REPO = 'maven-snapshots'
+        NEXUS_URL = 'localhost:8081'    // <- Retirer le "http://" ici
+        NEXUS_REPO = 'maven-releases'
     }
 
     options {
@@ -26,95 +29,64 @@ pipeline {
             }
         }
 
-        stage('Verify Tools') {
+        stage('Test Tools') {
             steps {
-                echo "Checking Java and Maven versions"
-                bat "\"${JAVA_HOME}\\bin\\java\" -version"
-                bat "\"${MAVEN_HOME}\\bin\\mvn\" -version"
+                echo "Test if CMD, Java and Maven are available"
+                bat "${CMD} /c echo CMD is available"
+                bat "${CMD} /c \"${JAVA_HOME}\\bin\\java -version\""
+                bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn -version\""
             }
         }
 
-        stage('Build & Test SNAPSHOT') {
+        stage('Build & Test') {
             steps {
-                echo "Building SNAPSHOT version"
-                bat "\"${MAVEN_HOME}\\bin\\mvn\" clean verify"
+                echo "Running Maven build and tests"
+                bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn clean verify\""
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 echo "Running SonarQube analysis"
-                withSonarQubeEnv(SONAR) {
-                    bat "\"${MAVEN_HOME}\\bin\\mvn\" sonar:sonar"
+                withSonarQubeEnv('SonarQube') {
+                    bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn sonar:sonar\""
                 }
             }
         }
 
-        stage('Publish SNAPSHOT to Nexus') {
+        stage('Publish Artifact to Nexus') {
             steps {
-                script {
-                    def pom = readMavenPom file: 'pom.xml'
-                    def snapshotVersion = pom.version
-                    echo "Publishing SNAPSHOT ${snapshotVersion} to Nexus"
-
-                    nexusArtifactUploader(
-                        nexusVersion: 'nexus3',
-                        protocol: 'http',
-                        nexusUrl: NEXUS_URL,
-                        repository: NEXUS_SNAPSHOT_REPO,
-                        credentialsId: NEXUS_CRED,
-                        groupId: 'com.demoic',
-                        artifacts: [
-                            [
-                                artifactId: 'demoic',
-                                classifier: '',
-                                file: "target/demoic-${snapshotVersion}.jar",
-                                type: 'jar'
-                            ]
-                        ],
-                        version: snapshotVersion
-                    )
-                }
-            }
-        }
-
-        stage('Build & Publish RELEASE') {
-            steps {
-                script {
-                    def pom = readMavenPom file: 'pom.xml'
-                    def releaseVersion = pom.version.replace('-SNAPSHOT','')
-                    echo "Building RELEASE version ${releaseVersion}"
-
-                    // Set Maven release version without backup pom
-                    bat "\"${MAVEN_HOME}\\bin\\mvn\" versions:set -DnewVersion=${releaseVersion} -DgenerateBackupPoms=false"
-                    bat "\"${MAVEN_HOME}\\bin\\mvn\" clean verify"
-
-                    echo "Publishing RELEASE ${releaseVersion} to Nexus"
-                    nexusArtifactUploader(
-                        nexusVersion: 'nexus3',
-                        protocol: 'http',
-                        nexusUrl: NEXUS_URL,
-                        repository: NEXUS_RELEASE_REPO,
-                        credentialsId: NEXUS_CRED,
-                        groupId: 'com.demoic',
-                        artifacts: [
-                            [
-                                artifactId: 'demoic',
-                                classifier: '',
-                                file: "target/demoic-${releaseVersion}.jar",
-                                type: 'jar'
-                            ]
-                        ],
-                        version: releaseVersion
-                    )
-                }
+                echo "Uploading artifact to Nexus"
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',                     // <- Protocole séparé
+                    nexusUrl: "${env.NEXUS_URL}",         // <- Sans "http://"
+                    repository: "${env.NEXUS_REPO}",
+                    credentialsId: "${env.NEXUS_CRED}",
+                    groupId: 'com.demoic',
+                    version: '1.0.0',
+                    artifacts: [
+                        [
+                            artifactId: 'demoic',
+                            classifier: '',
+                            file: 'target/demoic-1.0-RELEASE.jar',
+                            type: 'jar'
+                        ]
+                    ]
+                )
             }
         }
     }
 
     post {
-        success { echo "Pipeline finished successfully!" }
-        failure { echo "Pipeline failed. Check console output." }
-        always { echo "End of Pipeline." }
+        success {
+            echo "Pipeline finished successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check console output for details."
+        }
+        always {
+            echo "End of Pipeline."
+        }
     }
 }
