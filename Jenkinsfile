@@ -43,7 +43,7 @@ pipeline {
             steps {
                 echo "Running Maven build and tests"
                 bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn clean verify\""
-		bat "${CMD} /c dir target"
+		
             }
         }
 
@@ -61,10 +61,10 @@ pipeline {
  		script {
 	           def artifactId = 'demoic'
                    def version = '1.0-SNAPSHOT'
-                   def jarFile = "${env.WORKSPACE}\\target\\${artifactId}-${version}.jar"
+                   def jarFile = "target/${artifactId}-${version}.jar"
             	echo "Publishing JAR: ${jarFile}"
                 echo "Uploading artifact to Nexus"
-		 dir("${env.WORKSPACE}") {
+		 
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',                     // <- Protocole séparé
@@ -85,8 +85,7 @@ pipeline {
             }
         }
     }
-}
-}
+
     post {
         success {
             echo "Pipeline finished successfully!"
