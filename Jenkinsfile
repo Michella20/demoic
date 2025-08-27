@@ -11,7 +11,7 @@ pipeline {
         SONAR = 'SonarQube'
         NEXUS_CRED = 'nexus-admin'
         NEXUS_URL = 'localhost:8081'    // <- Retirer le "http://" ici
-        NEXUS_REPO = 'maven-releases'
+        NEXUS_REPO = 'maven-snapshots'
     }
 
     options {
@@ -57,9 +57,9 @@ pipeline {
         stage('Publish Artifact to Nexus') {
             steps {
  		script {
-		 def artifactId = 'demoic'
-             def version = '1.0'
-            def jarFile = "target/${artifactId}-${version}.jar"
+	           def artifactId = 'demoic'
+                   def version = '1.0-SNAPSHOT'
+                   def jarFile = "target/${artifactId}-${version}.jar"
             echo "Publishing JAR: ${jarFile}"
                 echo "Uploading artifact to Nexus"
                 nexusArtifactUploader(
@@ -69,7 +69,7 @@ pipeline {
                     repository: "${env.NEXUS_REPO}",
                     credentialsId: "${env.NEXUS_CRED}",
                     groupId: 'com.demoic',
-                    version: '1.0.0',
+                    version: 'version',
                     artifacts: [
                         [
                             artifactId: 'artifactId',
