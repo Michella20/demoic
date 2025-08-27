@@ -57,6 +57,7 @@ pipeline {
         stage('Publish Artifact to Nexus') {
             steps {
  		script {
+		 def artifactId = 'demoic'
              def version = '1.0'
             def jarFile = "target/${artifactId}-${version}.jar"
             echo "Publishing JAR: ${jarFile}"
@@ -71,7 +72,7 @@ pipeline {
                     version: '1.0.0',
                     artifacts: [
                         [
-                            artifactId: 'demoic',
+                            artifactId: 'artifactId',
                             classifier: '',
                             file: 'jarFile',
                             type: 'jar'
