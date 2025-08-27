@@ -2,11 +2,8 @@ pipeline {
     agent any
 
     environment {
-        CMD = 'C:\\Windows\\System32\\cmd.exe'
         JAVA_HOME = 'C:\\Users\\Laptop_Pavilion\\Downloads\\OpenJDK17U-jdk_x64_windows_hotspot_17.0.16_8\\jdk-17.0.16+8'
         MAVEN_HOME = 'C:\\Users\\Laptop_Pavilion\\Downloads\\apache-maven-3.9.11-bin\\apache-maven-3.9.11'
-        PATH = "${env.JAVA_HOME}\\bin;${env.MAVEN_HOME}\\bin;${env.PATH}"
-
         SONAR = 'SonarQube'
         NEXUS_CRED = 'nexus-admin'
         NEXUS_URL = 'localhost:8081'
@@ -29,19 +26,18 @@ pipeline {
             }
         }
 
-        stage('Test Tools') {
+        stage('Verify Tools') {
             steps {
-                echo "Test if CMD, Java and Maven are available"
-                bat "${CMD} /c echo CMD is available"
-                bat "${CMD} /c \"${JAVA_HOME}\\bin\\java -version\""
-                bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn -version\""
+                echo "Checking Java and Maven versions"
+                bat "\"${JAVA_HOME}\\bin\\java\" -version"
+                bat "\"${MAVEN_HOME}\\bin\\mvn\" -version"
             }
         }
 
         stage('Build & Test SNAPSHOT') {
             steps {
                 echo "Building SNAPSHOT version"
-                bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn clean verify\""
+                bat "\"${MAVEN_HOME}\\bin\\mvn\" clean verify"
             }
         }
 
@@ -49,7 +45,7 @@ pipeline {
             steps {
                 echo "Running SonarQube analysis"
                 withSonarQubeEnv(SONAR) {
-                    bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn sonar:sonar\""
+                    bat "\"${MAVEN_HOME}\\bin\\mvn\" sonar:sonar"
                 }
             }
         }
@@ -59,14 +55,14 @@ pipeline {
                 script {
                     def pom = readMavenPom file: 'pom.xml'
                     def snapshotVersion = pom.version
-                    echo "Publishing SNAPSHOT ${snapshotVersion} to ${env.NEXUS_SNAPSHOT_REPO}"
+                    echo "Publishing SNAPSHOT ${snapshotVersion} to Nexus"
 
                     nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
-                        nexusUrl: env.NEXUS_URL,
-                        repository: env.NEXUS_SNAPSHOT_REPO,
-                        credentialsId: env.NEXUS_CRED,
+                        nexusUrl: NEXUS_URL,
+                        repository: NEXUS_SNAPSHOT_REPO,
+                        credentialsId: NEXUS_CRED,
                         groupId: 'com.demoic',
                         artifacts: [
                             [
@@ -89,17 +85,17 @@ pipeline {
                     def releaseVersion = pom.version.replace('-SNAPSHOT','')
                     echo "Building RELEASE version ${releaseVersion}"
 
-                    // Changer la version Maven à RELEASE
-                    bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn versions:set -DnewVersion=${releaseVersion}\""
-                    bat "${CMD} /c \"${MAVEN_HOME}\\bin\\mvn clean verify\""
+                    // Set Maven release version without backup pom
+                    bat "\"${MAVEN_HOME}\\bin\\mvn\" versions:set -DnewVersion=${releaseVersion} -DgenerateBackupPoms=false"
+                    bat "\"${MAVEN_HOME}\\bin\\mvn\" clean verify"
 
-                    echo "Publishing RELEASE ${releaseVersion} to ${env.NEXUS_RELEASE_REPO}"
+                    echo "Publishing RELEASE ${releaseVersion} to Nexus"
                     nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
-                        nexusUrl: env.NEXUS_URL,
-                        repository: env.NEXUS_RELEASE_REPO,
-                        credentialsId: env.NEXUS_CRED,
+                        nexusUrl: NEXUS_URL,
+                        repository: NEXUS_RELEASE_REPO,
+                        credentialsId: NEXUS_CRED,
                         groupId: 'com.demoic',
                         artifacts: [
                             [
